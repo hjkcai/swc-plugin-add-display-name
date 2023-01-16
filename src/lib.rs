@@ -37,12 +37,23 @@ mod test {
     }
 
     test!(SYNTAX, runner,
-        /* Name */ basic,
+        /* Name */ basic_export,
         /* Input */ r#"
             export const Component = () => <div />;
         "#,
         /* Output */ r#"
             export const Component = () => <div />;
+            Component.displayName = "Component";
+        "#
+    );
+
+    test!(SYNTAX, runner,
+        /* Name */ basic_non_export,
+        /* Input */ r#"
+            const Component = () => <div />;
+        "#,
+        /* Output */ r#"
+            const Component = () => <div />;
             Component.displayName = "Component";
         "#
     );
@@ -95,6 +106,20 @@ mod test {
     );
 
     test!(SYNTAX, runner,
+        /* Name */ mix_var_export,
+        /* Input */ r#"
+            const Foo = () => <div />;
+            export const Bar = memo(() => <div />);
+        "#,
+        /* Output */ r#"
+            const Foo = () => <div />;
+            Foo.displayName = "Foo";
+            export const Bar = memo(() => <div />);
+            Bar.displayName = "Bar";
+        "#
+    );
+
+    test!(SYNTAX, runner,
         /* Name */ three_components,
         /* Input */ r#"
             export const Foo = () => <div />;
@@ -112,12 +137,56 @@ mod test {
     );
 
     test!(SYNTAX, runner,
-        /* Name */ normal_fn_will_not_get_display_name,
+        /* Name */ var_let_const,
+        /* Input */ r#"
+            var Foo = () => <div />;
+            let Bar = memo(() => <div />);
+            const Baz = observer(() => <div />);
+        "#,
+        /* Output */ r#"
+            var Foo = () => <div />;
+            Foo.displayName = "Foo";
+            let Bar = memo(() => <div />);
+            Bar.displayName = "Bar";
+            const Baz = observer(() => <div />);
+            Baz.displayName = "Baz";
+        "#
+    );
+
+    test!(SYNTAX, runner,
+        /* Name */ should_not_work_on_normal_fn,
         /* Input */ r#"
             export const fn = () => console.log();
         "#,
         /* Output */ r#"
             export const fn = () => console.log();
+        "#
+    );
+
+    test!(SYNTAX, runner,
+        /* Name */ should_not_work_on_default_export,
+        /* Input */ r#"
+            export default (() => <div />);
+        "#,
+        /* Output */ r#"
+            export default (() => <div />);
+        "#
+    );
+
+    test!(SYNTAX, runner,
+        /* Name */ should_not_work_on_non_top_level_fns,
+        /* Input */ r#"
+            const fn = () => {
+                const render = () => <div />;
+                return render;
+            };
+        "#,
+        /* Output */ r#"
+            const fn = () => {
+                const render = () => <div />;
+                return render;
+            };
+            fn.displayName = "fn";
         "#
     );
 }

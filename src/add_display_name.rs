@@ -12,6 +12,12 @@ struct Component {
     ctx: SyntaxContext,
 }
 
+impl Component {
+    fn with_pos(self, pos: usize) -> Component {
+        Component { pos, ..self }
+    }
+}
+
 pub struct AddDisplayNameVisitor;
 
 impl VisitMut for AddDisplayNameVisitor {
@@ -20,23 +26,8 @@ impl VisitMut for AddDisplayNameVisitor {
 
         let mut components: Vec<Component> = Vec::new();
         stmts.iter_mut().enumerate().for_each(|(i, stmt)| {
-            let mut export_var_decl = || {
-                let var_decls = stmt.as_mut_module_decl()?.as_mut_export_decl()?.decl.as_mut_var()?.as_mut();
-                if var_decls.decls.len() != 1 { return None };
-
-                let var_decl = &mut var_decls.decls[0];
-                let has_jsx = HasJSXVisitor::test(var_decl);
-                if !has_jsx { return None };
-
-                let name = &var_decl.name.as_ident()?.id;
-                Some(Component {
-                    pos: i,
-                    name: name.sym.clone(),
-                    ctx: name.span.ctxt
-                })
-            };
-
-            if let Some(result) = export_var_decl() { components.push(result) }
+            if let Some(comp) = export_var_decl(stmt) { components.push(comp.with_pos(i)) }
+            if let Some(comp) = var_decl_stmt(stmt) { components.push(comp.with_pos(i)) }
         });
 
         components.iter().enumerate().for_each(|(i, comp)| {
@@ -44,6 +35,31 @@ impl VisitMut for AddDisplayNameVisitor {
             stmts.insert(index, ModuleItem::Stmt(set_display_name_stmt(comp)));
         })
     }
+}
+
+fn export_var_decl(stmt: &mut ModuleItem) -> Option<Component> {
+    let var_decls = stmt.as_mut_module_decl()?.as_mut_export_decl()?.decl.as_mut_var()?.as_mut();
+    process_var_decls(var_decls)
+}
+
+fn var_decl_stmt(stmt: &mut ModuleItem) -> Option<Component> {
+    let var_decls = stmt.as_mut_stmt()?.as_mut_decl()?.as_mut_var()?.as_mut();
+    process_var_decls(var_decls)
+}
+
+fn process_var_decls(var_decls: &mut VarDecl) -> Option<Component> {
+    if var_decls.decls.len() != 1 { return None };
+
+    let var_decl = &mut var_decls.decls[0];
+    let has_jsx = HasJSXVisitor::test(var_decl);
+    if !has_jsx { return None };
+
+    let name = &var_decl.name.as_ident()?.id;
+    Some(Component {
+        pos: 0,
+        name: name.sym.clone(),
+        ctx: name.span.ctxt
+    })
 }
 
 fn set_display_name_stmt(comp: &Component) -> Stmt {
