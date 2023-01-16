@@ -189,4 +189,16 @@ mod test {
             fn.displayName = "fn";
         "#
     );
+
+    test!(SYNTAX, runner,
+        /* Name */ should_not_work_on_direct_jsx_element,
+        /* Input */ r#"
+            const foo = <div />;
+            const bar = <></>;
+        "#,
+        /* Output */ r#"
+            const foo = <div />;
+            const bar = <></>;
+        "#
+    );
 }

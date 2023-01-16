@@ -49,8 +49,12 @@ fn var_decl_stmt(stmt: &mut ModuleItem) -> Option<Component> {
 
 fn process_var_decls(var_decls: &mut VarDecl) -> Option<Component> {
     if var_decls.decls.len() != 1 { return None };
-
     let var_decl = &mut var_decls.decls[0];
+
+    if let Some(init) = &var_decl.init {
+        if init.is_jsx_element() || init.is_jsx_fragment() || init.is_paren() { return None; }
+    }
+
     let has_jsx = HasJSXVisitor::test(var_decl);
     if !has_jsx { return None };
 
