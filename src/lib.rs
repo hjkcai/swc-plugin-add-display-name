@@ -70,6 +70,17 @@ mod test {
     );
 
     test!(SYNTAX, runner,
+        /* Name */ returning_fragment,
+        /* Input */ r#"
+            export const Component = () => <></>;
+        "#,
+        /* Output */ r#"
+            export const Component = () => <></>;
+            Component.displayName = "Component";
+        "#
+    );
+
+    test!(SYNTAX, runner,
         /* Name */ two_components,
         /* Input */ r#"
             export const Foo = () => <div />;

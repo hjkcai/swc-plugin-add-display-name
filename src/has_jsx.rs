@@ -4,20 +4,25 @@ use swc_core::ecma::{
 };
 
 pub struct HasJSXVisitor {
-  has_jsx: bool,
+    has_jsx: bool,
 }
 
 impl HasJSXVisitor {
-  pub fn test(node: &mut impl VisitMutWith<Self>) -> bool {
-      let mut visitor = HasJSXVisitor { has_jsx: false };
-      node.visit_mut_children_with(&mut visitor);
-      visitor.has_jsx
-  }
+    pub fn test(node: &mut impl VisitMutWith<Self>) -> bool {
+        let mut visitor = HasJSXVisitor { has_jsx: false };
+        node.visit_mut_children_with(&mut visitor);
+        visitor.has_jsx
+    }
 }
 
 impl VisitMut for HasJSXVisitor {
-  fn visit_mut_jsx_element(&mut self, el: &mut JSXElement) {
-      el.visit_mut_children_with(self);
-      self.has_jsx = true;
-  }
+    fn visit_mut_jsx_element(&mut self, el: &mut JSXElement) {
+        el.visit_mut_children_with(self);
+        self.has_jsx = true;
+    }
+
+    fn visit_mut_jsx_fragment(&mut self, el: &mut JSXFragment) {
+        el.visit_mut_children_with(self);
+        self.has_jsx = true;
+    }
 }
