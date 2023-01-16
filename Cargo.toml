@@ -1,13 +1,16 @@
 [package]
-name = "swc-plugin-add-display-name"
-version = "0.1.0"
+name = "swc_plugin_add_display_name"
+version = "0.1.1"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib"]
 
 [profile.release]
+codegen-units = 1
 lto = true
+opt-level = "s"
+strip = "symbols"
 
 [dependencies]
 serde = "1"

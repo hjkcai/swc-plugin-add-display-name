@@ -6,13 +6,19 @@ use swc_core::ecma::{
     visit::{VisitMut, VisitMutWith},
 };
 
+struct Component {
+    pos: usize,
+    name: JsWord,
+    ctx: SyntaxContext,
+}
+
 pub struct AddDisplayNameVisitor;
 
 impl VisitMut for AddDisplayNameVisitor {
     fn visit_mut_module_items(&mut self, stmts: &mut Vec<ModuleItem>) {
         stmts.visit_mut_children_with(self);
 
-        let mut a: Vec<(usize, JsWord, SyntaxContext)> = Vec::new();
+        let mut components: Vec<Component> = Vec::new();
         stmts.iter_mut().enumerate().for_each(|(i, stmt)| {
             let mut export_var_decl = || {
                 let var_decls = stmt.as_mut_module_decl()?.as_mut_export_decl()?.decl.as_mut_var()?.as_mut();
@@ -23,19 +29,24 @@ impl VisitMut for AddDisplayNameVisitor {
                 if !has_jsx { return None };
 
                 let name = &var_decl.name.as_ident()?.id;
-                Some((i, name.sym.clone(), name.span.ctxt))
+                Some(Component {
+                    pos: i,
+                    name: name.sym.clone(),
+                    ctx: name.span.ctxt
+                })
             };
 
-            if let Some(result) = export_var_decl() { a.push(result) }
+            if let Some(result) = export_var_decl() { components.push(result) }
         });
 
-        a.iter().for_each(|(i, name, ctxt)| {
-            stmts.insert(*i + 1, ModuleItem::Stmt(set_display_name_stmt(name, ctxt)));
+        components.iter().enumerate().for_each(|(i, comp)| {
+            let index = i + comp.pos + 1;
+            stmts.insert(index, ModuleItem::Stmt(set_display_name_stmt(comp)));
         })
     }
 }
 
-fn set_display_name_stmt(target: &JsWord, ctxt: &SyntaxContext) -> Stmt {
+fn set_display_name_stmt(comp: &Component) -> Stmt {
     Stmt::Expr(ExprStmt {
         span: DUMMY_SP,
         expr: Box::new(Expr::Assign(AssignExpr {
@@ -43,10 +54,10 @@ fn set_display_name_stmt(target: &JsWord, ctxt: &SyntaxContext) -> Stmt {
             op: AssignOp::Assign,
             left: PatOrExpr::Expr(Box::new(Expr::Member(MemberExpr {
                 span: DUMMY_SP,
-                obj: Box::new(Expr::Ident(Ident::new(target.clone(), Span { ctxt: *ctxt, ..DUMMY_SP }))),
+                obj: Box::new(Expr::Ident(Ident::new(comp.name.clone(), Span { ctxt: comp.ctx, ..DUMMY_SP }))),
                 prop: MemberProp::Ident(Ident::new(JsWord::from("displayName").into(), DUMMY_SP))
             }))),
-            right: Box::new(Expr::Lit(Lit::Str(Str::from(target.clone()))))
+            right: Box::new(Expr::Lit(Lit::Str(Str::from(comp.name.clone()))))
         }))
     })
 }

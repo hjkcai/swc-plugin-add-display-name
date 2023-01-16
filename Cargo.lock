@@ -1259,14 +1259,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "swc-plugin-add-display-name"
-version = "0.1.0"
-dependencies = [
- "serde",
- "swc_core",
-]
-
-[[package]]
 name = "swc_atoms"
 version = "0.4.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1539,6 +1531,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ca5df720531bfbd7ceb1139319c39c20c446abfb8f7e0eb47b104205a71152b4"
 dependencies = [
  "once_cell",
+]
+
+[[package]]
+name = "swc_plugin_add_display_name"
+version = "0.1.1"
+dependencies = [
+ "serde",
+ "swc_core",
 ]
 
 [[package]]

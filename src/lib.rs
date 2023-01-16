@@ -59,6 +59,48 @@ mod test {
     );
 
     test!(SYNTAX, runner,
+        /* Name */ forward_ref,
+        /* Input */ r#"
+            export const Component = forwardRef((props, ref) => <div />);
+        "#,
+        /* Output */ r#"
+            export const Component = forwardRef((props, ref) => <div />);
+            Component.displayName = "Component";
+        "#
+    );
+
+    test!(SYNTAX, runner,
+        /* Name */ two_components,
+        /* Input */ r#"
+            export const Foo = () => <div />;
+            export const Bar = memo(() => <div />);
+        "#,
+        /* Output */ r#"
+            export const Foo = () => <div />;
+            Foo.displayName = "Foo";
+            export const Bar = memo(() => <div />);
+            Bar.displayName = "Bar";
+        "#
+    );
+
+    test!(SYNTAX, runner,
+        /* Name */ three_components,
+        /* Input */ r#"
+            export const Foo = () => <div />;
+            export const Bar = memo(() => <div />);
+            export const Baz = observer(() => <div />);
+        "#,
+        /* Output */ r#"
+            export const Foo = () => <div />;
+            Foo.displayName = "Foo";
+            export const Bar = memo(() => <div />);
+            Bar.displayName = "Bar";
+            export const Baz = observer(() => <div />);
+            Baz.displayName = "Baz";
+        "#
+    );
+
+    test!(SYNTAX, runner,
         /* Name */ normal_fn_will_not_get_display_name,
         /* Input */ r#"
             export const fn = () => console.log();
