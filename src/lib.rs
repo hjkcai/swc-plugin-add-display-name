@@ -59,6 +59,17 @@ mod test {
     );
 
     test!(SYNTAX, runner,
+        /* Name */ fn_declaration_export,
+        /* Input */ r#"
+            export function Component() { return <div />; }
+        "#,
+        /* Output */ r#"
+            export function Component() { return <div />; }
+            Component.displayName = "Component";
+        "#
+    );
+
+    test!(SYNTAX, runner,
         /* Name */ memo,
         /* Input */ r#"
             export const Component = memo(() => <div />);
