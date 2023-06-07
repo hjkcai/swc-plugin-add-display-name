@@ -28,6 +28,8 @@ impl VisitMut for AddDisplayNameVisitor {
         stmts.iter_mut().enumerate().for_each(|(i, stmt)| {
             if let Some(comp) = export_var_decl(stmt) { components.push(comp.with_pos(i)) }
             if let Some(comp) = var_decl_stmt(stmt) { components.push(comp.with_pos(i)) }
+            if let Some(comp) = export_fn_decl(stmt) { components.push(comp.with_pos(i)) }
+            if let Some(comp) = bare_fn_decl(stmt) { components.push(comp.with_pos(i)) }
         });
 
         components.iter().enumerate().for_each(|(i, comp)| {
@@ -59,6 +61,28 @@ fn process_var_decls(var_decls: &mut VarDecl) -> Option<Component> {
     if !has_jsx { return None };
 
     let name = &var_decl.name.as_ident()?.id;
+    Some(Component {
+        pos: 0,
+        name: name.sym.clone(),
+        ctx: name.span.ctxt
+    })
+}
+
+fn export_fn_decl(stmt: &mut ModuleItem) -> Option<Component> {
+    let fn_decl = stmt.as_mut_module_decl()?.as_mut_export_decl()?.decl.as_mut_fn_decl()?;
+    process_fn_decl(fn_decl)
+}
+
+fn bare_fn_decl(stmt: &mut ModuleItem) -> Option<Component> {
+    let fn_decl = stmt.as_mut_stmt()?.as_mut_decl()?.as_mut_fn_decl()?;
+    process_fn_decl(fn_decl)
+}
+
+fn process_fn_decl(fn_decl: &mut FnDecl) -> Option<Component> {
+    let has_jsx = HasJSXVisitor::test(fn_decl);
+    if !has_jsx { return None };
+
+    let name = &fn_decl.ident;
     Some(Component {
         pos: 0,
         name: name.sym.clone(),

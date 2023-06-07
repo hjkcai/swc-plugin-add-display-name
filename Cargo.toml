@@ -1,6 +1,6 @@
 [package]
 name = "swc_plugin_add_display_name"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 
 [lib]
@@ -14,7 +14,7 @@ strip = "symbols"
 
 [dependencies]
 serde = "1"
-swc_core = { version = "0.52.*", features = ["ecma_plugin_transform", "__parser"] }
+swc_core = { version = "0.76.*", features = ["ecma_plugin_transform", "__parser"] }
 
 # .cargo/config defines few alias to build plugin.
 # cargo build-wasi generates wasm-wasi32 binary

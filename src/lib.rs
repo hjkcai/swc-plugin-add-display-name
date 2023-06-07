@@ -26,7 +26,8 @@ mod test {
         tsx: true,
         decorators: false,
         dts: false,
-        no_early_errors: false
+        no_early_errors: false,
+        disallow_ambiguous_jsx_like: true,
     });
 
     fn runner(_: &mut Tester) -> impl Fold {
@@ -76,6 +77,17 @@ mod test {
         "#,
         /* Output */ r#"
             export function Component() { return <div />; }
+            Component.displayName = "Component";
+        "#
+    );
+
+    test!(SYNTAX, runner,
+        /* Name */ fn_declaration,
+        /* Input */ r#"
+            function Component() { return <div />; }
+        "#,
+        /* Output */ r#"
+            function Component() { return <div />; }
             Component.displayName = "Component";
         "#
     );
