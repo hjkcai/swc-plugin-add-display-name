@@ -82,6 +82,17 @@ mod test {
     );
 
     test!(SYNTAX, runner,
+        /* Name */ fn_declaration_default_export,
+        /* Input */ r#"
+            export default function Component() { return <div />; }
+        "#,
+        /* Output */ r#"
+            export default function Component() { return <div />; }
+            Component.displayName = "Component";
+        "#
+    );
+
+    test!(SYNTAX, runner,
         /* Name */ fn_declaration,
         /* Input */ r#"
             function Component() { return <div />; }
