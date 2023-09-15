@@ -18,22 +18,31 @@ impl Component {
     }
 }
 
-pub struct AddDisplayNameVisitor;
+pub struct AddDisplayNameVisitor {
+    components: Vec<Component>,
+}
+
+impl Default for AddDisplayNameVisitor {
+    fn default() -> AddDisplayNameVisitor {
+        AddDisplayNameVisitor {
+            components: Vec::new(),
+        }
+    }
+}
 
 impl VisitMut for AddDisplayNameVisitor {
     fn visit_mut_module_items(&mut self, stmts: &mut Vec<ModuleItem>) {
         stmts.visit_mut_children_with(self);
 
-        let mut components: Vec<Component> = Vec::new();
         stmts.iter_mut().enumerate().for_each(|(i, stmt)| {
-            if let Some(comp) = export_var_decl(stmt) { components.push(comp.with_pos(i)) }
-            if let Some(comp) = var_decl_stmt(stmt) { components.push(comp.with_pos(i)) }
-            if let Some(comp) = default_export_fn_decl(stmt) { components.push(comp.with_pos(i)) }
-            if let Some(comp) = export_fn_decl(stmt) { components.push(comp.with_pos(i)) }
-            if let Some(comp) = bare_fn_decl(stmt) { components.push(comp.with_pos(i)) }
+            if let Some(comp) = export_var_decl(stmt) { self.components.push(comp.with_pos(i)) }
+            if let Some(comp) = var_decl_stmt(stmt) { self.components.push(comp.with_pos(i)) }
+            if let Some(comp) = default_export_fn_decl(stmt) { self.components.push(comp.with_pos(i)) }
+            if let Some(comp) = export_fn_decl(stmt) { self.components.push(comp.with_pos(i)) }
+            if let Some(comp) = bare_fn_decl(stmt) { self.components.push(comp.with_pos(i)) }
         });
 
-        components.iter().enumerate().for_each(|(i, comp)| {
+        self.components.iter().enumerate().for_each(|(i, comp)| {
             let index = i + comp.pos + 1;
             stmts.insert(index, ModuleItem::Stmt(set_display_name_stmt(comp)));
         })

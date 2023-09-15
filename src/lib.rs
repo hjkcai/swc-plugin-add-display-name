@@ -8,7 +8,7 @@ use swc_core::plugin::{plugin_transform, proxies::TransformPluginProgramMetadata
 
 #[plugin_transform]
 pub fn process_transform(program: Program, _metadata: TransformPluginProgramMetadata) -> Program {
-    program.fold_with(&mut as_folder(AddDisplayNameVisitor))
+    program.fold_with(&mut as_folder(AddDisplayNameVisitor::default()))
 }
 
 #[cfg(test)]
@@ -33,7 +33,7 @@ mod test {
     fn runner(_: &mut Tester) -> impl Fold {
         chain!(
             resolver(Mark::new(), Mark::new(), false),
-            as_folder(super::AddDisplayNameVisitor)
+            as_folder(super::AddDisplayNameVisitor::default())
         )
     }
 
