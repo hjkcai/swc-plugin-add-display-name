@@ -18,6 +18,26 @@ impl Component {
     }
 }
 
+impl Component {
+    pub fn create_display_name_stmt(&self) -> ModuleItem {
+        ModuleItem::Stmt(
+            Stmt::Expr(ExprStmt {
+                span: DUMMY_SP,
+                expr: Box::new(Expr::Assign(AssignExpr {
+                    span: DUMMY_SP,
+                    op: AssignOp::Assign,
+                    left: PatOrExpr::Expr(Box::new(Expr::Member(MemberExpr {
+                        span: DUMMY_SP,
+                        obj: Box::new(Expr::Ident(Ident::new(self.name.clone(), Span { ctxt: self.ctx, ..DUMMY_SP }))),
+                        prop: MemberProp::Ident(Ident::new(JsWord::from("displayName").into(), DUMMY_SP))
+                    }))),
+                    right: Box::new(Expr::Lit(Lit::Str(Str::from(self.name.clone()))))
+                }))
+            })
+        )
+    }
+}
+
 pub struct AddDisplayNameVisitor {
     components: Vec<Component>,
 }
@@ -37,9 +57,9 @@ impl VisitMut for AddDisplayNameVisitor {
         self.components.iter().enumerate().for_each(|(i, comp)| {
             let index = i + comp.pos + 1;
             if index < stmts.len() {
-                stmts.insert(index, ModuleItem::Stmt(set_display_name_stmt(comp)));
+                stmts.insert(index, comp.create_display_name_stmt());
             } else {
-                stmts.push(ModuleItem::Stmt(set_display_name_stmt(comp)));
+                stmts.push(comp.create_display_name_stmt());
             }
         })
     }
@@ -102,21 +122,5 @@ fn process_fn_decl(fn_decl: &mut FnDecl) -> Option<Component> {
         pos: 0,
         name: name.sym.clone(),
         ctx: name.span.ctxt
-    })
-}
-
-fn set_display_name_stmt(comp: &Component) -> Stmt {
-    Stmt::Expr(ExprStmt {
-        span: DUMMY_SP,
-        expr: Box::new(Expr::Assign(AssignExpr {
-            span: DUMMY_SP,
-            op: AssignOp::Assign,
-            left: PatOrExpr::Expr(Box::new(Expr::Member(MemberExpr {
-                span: DUMMY_SP,
-                obj: Box::new(Expr::Ident(Ident::new(comp.name.clone(), Span { ctxt: comp.ctx, ..DUMMY_SP }))),
-                prop: MemberProp::Ident(Ident::new(JsWord::from("displayName").into(), DUMMY_SP))
-            }))),
-            right: Box::new(Expr::Lit(Lit::Str(Str::from(comp.name.clone()))))
-        }))
     })
 }
