@@ -35,7 +35,6 @@ impl VisitMut for AddDisplayNameVisitor {
         stmts.visit_mut_children_with(self);
 
         stmts.iter_mut().enumerate().for_each(|(i, stmt)| {
-            if let Some(comp) = default_export_fn_decl(stmt) { self.components.push(comp.with_pos(i)) }
             if let Some(comp) = export_fn_decl(stmt) { self.components.push(comp.with_pos(i)) }
             if let Some(comp) = bare_fn_decl(stmt) { self.components.push(comp.with_pos(i)) }
         });
@@ -48,6 +47,12 @@ impl VisitMut for AddDisplayNameVisitor {
 
     fn visit_mut_var_declarator(&mut self, n: &mut VarDeclarator) {
         if let Some(comp) = process_var_declarator(n) {
+            self.components.push(comp.with_pos(self.components.len()))
+        }
+    }
+
+    fn visit_mut_fn_expr(&mut self, n: &mut FnExpr) {
+        if let Some(comp) = process_fn_expr(n) {
             self.components.push(comp.with_pos(self.components.len()))
         }
     }
@@ -67,11 +72,6 @@ fn process_var_declarator(var_decl: &mut VarDeclarator) -> Option<Component> {
         name: name.sym.clone(),
         ctx: name.span.ctxt
     })
-}
-
-fn default_export_fn_decl(stmt: &mut ModuleItem) -> Option<Component> {
-    let fn_expr = stmt.as_mut_module_decl()?.as_mut_export_default_decl()?.decl.as_mut_fn_expr()?;
-    process_fn_expr(fn_expr)
 }
 
 fn process_fn_expr(fn_expr: &mut FnExpr) -> Option<Component> {
