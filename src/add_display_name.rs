@@ -61,8 +61,10 @@ fn var_decl_stmt(stmt: &mut ModuleItem) -> Option<Component> {
 
 fn process_var_decls(var_decls: &mut VarDecl) -> Option<Component> {
     if var_decls.decls.len() != 1 { return None };
-    let var_decl = &mut var_decls.decls[0];
+    process_var_declarator(&mut var_decls.decls[0])
+}
 
+fn process_var_declarator(var_decl: &mut VarDeclarator) -> Option<Component> {
     if let Some(init) = &var_decl.init {
         if init.is_jsx_element() || init.is_jsx_fragment() || init.is_paren() { return None; }
     }
