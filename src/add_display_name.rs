@@ -35,8 +35,6 @@ impl VisitMut for AddDisplayNameVisitor {
         stmts.visit_mut_children_with(self);
 
         stmts.iter_mut().enumerate().for_each(|(i, stmt)| {
-            if let Some(comp) = export_var_decl(stmt) { self.components.push(comp.with_pos(i)) }
-            if let Some(comp) = var_decl_stmt(stmt) { self.components.push(comp.with_pos(i)) }
             if let Some(comp) = default_export_fn_decl(stmt) { self.components.push(comp.with_pos(i)) }
             if let Some(comp) = export_fn_decl(stmt) { self.components.push(comp.with_pos(i)) }
             if let Some(comp) = bare_fn_decl(stmt) { self.components.push(comp.with_pos(i)) }
@@ -47,21 +45,12 @@ impl VisitMut for AddDisplayNameVisitor {
             stmts.insert(index, ModuleItem::Stmt(set_display_name_stmt(comp)));
         })
     }
-}
 
-fn export_var_decl(stmt: &mut ModuleItem) -> Option<Component> {
-    let var_decls = stmt.as_mut_module_decl()?.as_mut_export_decl()?.decl.as_mut_var()?.as_mut();
-    process_var_decls(var_decls)
-}
-
-fn var_decl_stmt(stmt: &mut ModuleItem) -> Option<Component> {
-    let var_decls = stmt.as_mut_stmt()?.as_mut_decl()?.as_mut_var()?.as_mut();
-    process_var_decls(var_decls)
-}
-
-fn process_var_decls(var_decls: &mut VarDecl) -> Option<Component> {
-    if var_decls.decls.len() != 1 { return None };
-    process_var_declarator(&mut var_decls.decls[0])
+    fn visit_mut_var_declarator(&mut self, n: &mut VarDeclarator) {
+        if let Some(comp) = process_var_declarator(n) {
+            self.components.push(comp.with_pos(self.components.len()))
+        }
+    }
 }
 
 fn process_var_declarator(var_decl: &mut VarDeclarator) -> Option<Component> {
