@@ -199,6 +199,18 @@ mod test {
     );
 
     test!(SYNTAX, runner,
+        /* Name */ one_const_statement_multiple_exprs,
+        /* Input */ r#"
+            const Foo = () => <div />, Bar = memo(() => <div />);
+        "#,
+        /* Output */ r#"
+            const Foo = () => <div />, Bar = memo(() => <div />);
+            Foo.displayName = "Foo";
+            Bar.displayName = "Bar";
+        "#
+    );
+
+    test!(SYNTAX, runner,
         /* Name */ should_not_work_on_normal_fn,
         /* Input */ r#"
             export const fn = () => console.log();

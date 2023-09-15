@@ -36,7 +36,11 @@ impl VisitMut for AddDisplayNameVisitor {
 
         self.components.iter().enumerate().for_each(|(i, comp)| {
             let index = i + comp.pos + 1;
-            stmts.insert(index, ModuleItem::Stmt(set_display_name_stmt(comp)));
+            if index < stmts.len() {
+                stmts.insert(index, ModuleItem::Stmt(set_display_name_stmt(comp)));
+            } else {
+                stmts.push(ModuleItem::Stmt(set_display_name_stmt(comp)));
+            }
         })
     }
 
