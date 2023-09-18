@@ -38,16 +38,9 @@ impl Component {
     }
 }
 
+#[derive(Default)]
 pub struct AddDisplayNameVisitor {
     components: Vec<Component>,
-}
-
-impl Default for AddDisplayNameVisitor {
-    fn default() -> AddDisplayNameVisitor {
-        AddDisplayNameVisitor {
-            components: Vec::new(),
-        }
-    }
 }
 
 impl VisitMut for AddDisplayNameVisitor {
