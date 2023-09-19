@@ -18,42 +18,65 @@ impl Component {
     }
 }
 
-pub struct AddDisplayNameVisitor;
+impl Component {
+    pub fn create_display_name_stmt(&self) -> ModuleItem {
+        ModuleItem::Stmt(
+            Stmt::Expr(ExprStmt {
+                span: DUMMY_SP,
+                expr: Box::new(Expr::Assign(AssignExpr {
+                    span: DUMMY_SP,
+                    op: AssignOp::Assign,
+                    left: PatOrExpr::Expr(Box::new(Expr::Member(MemberExpr {
+                        span: DUMMY_SP,
+                        obj: Box::new(Expr::Ident(Ident::new(self.name.clone(), Span { ctxt: self.ctx, ..DUMMY_SP }))),
+                        prop: MemberProp::Ident(Ident::new(JsWord::from("displayName").into(), DUMMY_SP))
+                    }))),
+                    right: Box::new(Expr::Lit(Lit::Str(Str::from(self.name.clone()))))
+                }))
+            })
+        )
+    }
+}
+
+#[derive(Default)]
+pub struct AddDisplayNameVisitor {
+    components: Vec<Component>,
+}
 
 impl VisitMut for AddDisplayNameVisitor {
     fn visit_mut_module_items(&mut self, stmts: &mut Vec<ModuleItem>) {
         stmts.visit_mut_children_with(self);
 
-        let mut components: Vec<Component> = Vec::new();
-        stmts.iter_mut().enumerate().for_each(|(i, stmt)| {
-            if let Some(comp) = export_var_decl(stmt) { components.push(comp.with_pos(i)) }
-            if let Some(comp) = var_decl_stmt(stmt) { components.push(comp.with_pos(i)) }
-            if let Some(comp) = default_export_fn_decl(stmt) { components.push(comp.with_pos(i)) }
-            if let Some(comp) = export_fn_decl(stmt) { components.push(comp.with_pos(i)) }
-            if let Some(comp) = bare_fn_decl(stmt) { components.push(comp.with_pos(i)) }
-        });
-
-        components.iter().enumerate().for_each(|(i, comp)| {
+        self.components.iter().enumerate().for_each(|(i, comp)| {
             let index = i + comp.pos + 1;
-            stmts.insert(index, ModuleItem::Stmt(set_display_name_stmt(comp)));
+            if index < stmts.len() {
+                stmts.insert(index, comp.create_display_name_stmt());
+            } else {
+                stmts.push(comp.create_display_name_stmt());
+            }
         })
+    }
+
+    fn visit_mut_var_declarator(&mut self, n: &mut VarDeclarator) {
+        if let Some(comp) = process_var_declarator(n) {
+            self.components.push(comp.with_pos(self.components.len()))
+        }
+    }
+
+    fn visit_mut_fn_expr(&mut self, n: &mut FnExpr) {
+        if let Some(comp) = process_fn_expr(n) {
+            self.components.push(comp.with_pos(self.components.len()))
+        }
+    }
+
+    fn visit_mut_fn_decl(&mut self, n: &mut FnDecl) {
+        if let Some(comp) = process_fn_decl(n) {
+            self.components.push(comp.with_pos(self.components.len()))
+        }
     }
 }
 
-fn export_var_decl(stmt: &mut ModuleItem) -> Option<Component> {
-    let var_decls = stmt.as_mut_module_decl()?.as_mut_export_decl()?.decl.as_mut_var()?.as_mut();
-    process_var_decls(var_decls)
-}
-
-fn var_decl_stmt(stmt: &mut ModuleItem) -> Option<Component> {
-    let var_decls = stmt.as_mut_stmt()?.as_mut_decl()?.as_mut_var()?.as_mut();
-    process_var_decls(var_decls)
-}
-
-fn process_var_decls(var_decls: &mut VarDecl) -> Option<Component> {
-    if var_decls.decls.len() != 1 { return None };
-    let var_decl = &mut var_decls.decls[0];
-
+fn process_var_declarator(var_decl: &mut VarDeclarator) -> Option<Component> {
     if let Some(init) = &var_decl.init {
         if init.is_jsx_element() || init.is_jsx_fragment() || init.is_paren() { return None; }
     }
@@ -67,11 +90,6 @@ fn process_var_decls(var_decls: &mut VarDecl) -> Option<Component> {
         name: name.sym.clone(),
         ctx: name.span.ctxt
     })
-}
-
-fn default_export_fn_decl(stmt: &mut ModuleItem) -> Option<Component> {
-    let fn_expr = stmt.as_mut_module_decl()?.as_mut_export_default_decl()?.decl.as_mut_fn_expr()?;
-    process_fn_expr(fn_expr)
 }
 
 fn process_fn_expr(fn_expr: &mut FnExpr) -> Option<Component> {
@@ -88,16 +106,6 @@ fn process_fn_expr(fn_expr: &mut FnExpr) -> Option<Component> {
     return None
 }
 
-fn export_fn_decl(stmt: &mut ModuleItem) -> Option<Component> {
-    let fn_decl = stmt.as_mut_module_decl()?.as_mut_export_decl()?.decl.as_mut_fn_decl()?;
-    process_fn_decl(fn_decl)
-}
-
-fn bare_fn_decl(stmt: &mut ModuleItem) -> Option<Component> {
-    let fn_decl = stmt.as_mut_stmt()?.as_mut_decl()?.as_mut_fn_decl()?;
-    process_fn_decl(fn_decl)
-}
-
 fn process_fn_decl(fn_decl: &mut FnDecl) -> Option<Component> {
     let has_jsx = HasJSXVisitor::test(fn_decl);
     if !has_jsx { return None };
@@ -107,21 +115,5 @@ fn process_fn_decl(fn_decl: &mut FnDecl) -> Option<Component> {
         pos: 0,
         name: name.sym.clone(),
         ctx: name.span.ctxt
-    })
-}
-
-fn set_display_name_stmt(comp: &Component) -> Stmt {
-    Stmt::Expr(ExprStmt {
-        span: DUMMY_SP,
-        expr: Box::new(Expr::Assign(AssignExpr {
-            span: DUMMY_SP,
-            op: AssignOp::Assign,
-            left: PatOrExpr::Expr(Box::new(Expr::Member(MemberExpr {
-                span: DUMMY_SP,
-                obj: Box::new(Expr::Ident(Ident::new(comp.name.clone(), Span { ctxt: comp.ctx, ..DUMMY_SP }))),
-                prop: MemberProp::Ident(Ident::new(JsWord::from("displayName").into(), DUMMY_SP))
-            }))),
-            right: Box::new(Expr::Lit(Lit::Str(Str::from(comp.name.clone()))))
-        }))
     })
 }
