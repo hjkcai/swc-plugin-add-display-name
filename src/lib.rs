@@ -70,6 +70,24 @@ mod test {
         "#
     );
 
+
+    test!(SYNTAX, runner,
+        /* Name */ fn_expression_export_multiline,
+        /* Input */ r#"
+            const a = {};
+            export const Component = function() {
+                return <div />; 
+            }
+            export default Component;
+        "#,
+        /* Output */ r#"
+            const a = {};
+            export const Component = function() { return <div />; }
+            Component.displayName = "Component";
+            export default Component;
+        "#
+    );
+
     test!(SYNTAX, runner,
         /* Name */ fn_declaration_export,
         /* Input */ r#"

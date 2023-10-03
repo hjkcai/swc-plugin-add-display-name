@@ -40,12 +40,16 @@ impl Component {
 
 #[derive(Default)]
 pub struct AddDisplayNameVisitor {
+    pos: usize,
     components: Vec<Component>,
 }
 
 impl VisitMut for AddDisplayNameVisitor {
     fn visit_mut_module_items(&mut self, stmts: &mut Vec<ModuleItem>) {
-        stmts.visit_mut_children_with(self);
+        stmts.iter_mut().enumerate().for_each(|(i, stmt)| {
+            self.pos = i;
+            stmt.visit_mut_children_with(self);
+        });
 
         self.components.iter().enumerate().for_each(|(i, comp)| {
             let index = i + comp.pos + 1;
@@ -59,19 +63,19 @@ impl VisitMut for AddDisplayNameVisitor {
 
     fn visit_mut_var_declarator(&mut self, n: &mut VarDeclarator) {
         if let Some(comp) = process_var_declarator(n) {
-            self.components.push(comp.with_pos(self.components.len()))
+            self.components.push(comp.with_pos(self.pos))
         }
     }
 
     fn visit_mut_fn_expr(&mut self, n: &mut FnExpr) {
         if let Some(comp) = process_fn_expr(n) {
-            self.components.push(comp.with_pos(self.components.len()))
+            self.components.push(comp.with_pos(self.pos))
         }
     }
 
     fn visit_mut_fn_decl(&mut self, n: &mut FnDecl) {
         if let Some(comp) = process_fn_decl(n) {
-            self.components.push(comp.with_pos(self.components.len()))
+            self.components.push(comp.with_pos(self.pos))
         }
     }
 }
