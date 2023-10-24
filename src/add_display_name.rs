@@ -82,7 +82,9 @@ impl VisitMut for AddDisplayNameVisitor {
 
 fn process_var_declarator(var_decl: &mut VarDeclarator) -> Option<Component> {
     if let Some(init) = &var_decl.init {
-        if init.is_jsx_element() || init.is_jsx_fragment() || init.is_paren() { return None; }
+        if init.is_jsx_element() || init.is_jsx_fragment() || init.is_paren() || init.is_object() {
+            return None;
+        }
     }
 
     let has_jsx = HasJSXVisitor::test(var_decl);

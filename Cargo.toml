@@ -1,6 +1,6 @@
 [package]
 name = "swc_plugin_add_display_name"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 
 [lib]

@@ -76,7 +76,7 @@ mod test {
         /* Input */ r#"
             const a = {};
             export const Component = function() {
-                return <div />; 
+                return <div />;
             }
             export default Component;
         "#,
@@ -274,6 +274,16 @@ mod test {
         /* Output */ r#"
             const foo = <div />;
             const bar = <></>;
+        "#
+    );
+
+    test!(SYNTAX, runner,
+        /* Name */ should_not_work_on_object_literal,
+        /* Input */ r#"
+            const foo = { bar: <div /> };
+        "#,
+        /* Output */ r#"
+            const foo = { bar: <div /> };
         "#
     );
 }
