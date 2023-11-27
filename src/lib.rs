@@ -286,4 +286,18 @@ mod test {
             const foo = { bar: <div /> };
         "#
     );
+
+    test!(SYNTAX, runner,
+        /* Name */ should_not_work_on_non_top_level, // https://github.com/hjkcai/swc-plugin-add-display-name/issues/7
+        /* Input */ r#"
+            test("should not work", () => {
+                const ref = render(<App />);
+            });
+        "#,
+        /* Output */ r#"
+            test("should not work", () => {
+                const ref = render(<App />);
+            });
+        "#
+    );
 }

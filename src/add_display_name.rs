@@ -39,19 +39,36 @@ impl Component {
 }
 
 #[derive(Default)]
-pub struct AddDisplayNameVisitor {
-    pos: usize,
-    components: Vec<Component>,
-}
+pub struct AddDisplayNameVisitor;
 
 impl VisitMut for AddDisplayNameVisitor {
     fn visit_mut_module_items(&mut self, stmts: &mut Vec<ModuleItem>) {
-        stmts.iter_mut().enumerate().for_each(|(i, stmt)| {
-            self.pos = i;
-            stmt.visit_mut_children_with(self);
+        stmts.visit_mut_children_with(self);
+
+        let mut components: Vec<Component> = Vec::new();
+        stmts.iter_mut().enumerate().for_each(|(pos, stmt)| {
+            if let Some(var_decl) = to_var_decl(stmt) {
+                var_decl.decls.iter_mut().for_each(|var_declarator| {
+                    if let Some(comp) = process_var_declarator(var_declarator) {
+                        components.push(comp.with_pos(pos))
+                    }
+                })
+            }
+
+            if let Some(fn_decl) = to_fn_decl(stmt) {
+                if let Some(comp) = process_fn_decl(fn_decl) {
+                    components.push(comp.with_pos(pos))
+                }
+            }
+
+            if let Some(fn_expr) = to_fn_expr(stmt) {
+                if let Some(comp) = process_fn_expr(fn_expr) {
+                    components.push(comp.with_pos(pos))
+                }
+            }
         });
 
-        self.components.iter().enumerate().for_each(|(i, comp)| {
+        components.iter().enumerate().for_each(|(i, comp)| {
             let index = i + comp.pos + 1;
             if index < stmts.len() {
                 stmts.insert(index, comp.create_display_name_stmt());
@@ -60,23 +77,18 @@ impl VisitMut for AddDisplayNameVisitor {
             }
         })
     }
+}
 
-    fn visit_mut_var_declarator(&mut self, n: &mut VarDeclarator) {
-        if let Some(comp) = process_var_declarator(n) {
-            self.components.push(comp.with_pos(self.pos))
-        }
-    }
-
-    fn visit_mut_fn_expr(&mut self, n: &mut FnExpr) {
-        if let Some(comp) = process_fn_expr(n) {
-            self.components.push(comp.with_pos(self.pos))
-        }
-    }
-
-    fn visit_mut_fn_decl(&mut self, n: &mut FnDecl) {
-        if let Some(comp) = process_fn_decl(n) {
-            self.components.push(comp.with_pos(self.pos))
-        }
+fn to_var_decl(stmt: &mut ModuleItem) -> Option<&mut VarDecl> {
+    match stmt {
+        ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl { span: _, decl })) => {
+            match decl {
+                Decl::Var(var_decl) => Some(var_decl),
+                _ => None
+            }
+        },
+        ModuleItem::Stmt(Stmt::Decl(Decl::Var(var_decl))) => Some(var_decl),
+        _ => None
     }
 }
 
@@ -98,6 +110,18 @@ fn process_var_declarator(var_decl: &mut VarDeclarator) -> Option<Component> {
     })
 }
 
+fn to_fn_expr(stmt: &mut ModuleItem) -> Option<&mut FnExpr> {
+    match stmt {
+        ModuleItem::ModuleDecl(ModuleDecl::ExportDefaultDecl(ExportDefaultDecl { span: _, decl })) => {
+            match decl {
+                DefaultDecl::Fn(fn_expr) => Some(fn_expr),
+                _ => None,
+            }
+        },
+        _ => None
+    }
+}
+
 fn process_fn_expr(fn_expr: &mut FnExpr) -> Option<Component> {
     let has_jsx = HasJSXVisitor::test(fn_expr);
     if !has_jsx { return None };
@@ -110,6 +134,19 @@ fn process_fn_expr(fn_expr: &mut FnExpr) -> Option<Component> {
         })
     }
     return None
+}
+
+fn to_fn_decl(stmt: &mut ModuleItem) -> Option<&mut FnDecl> {
+    match stmt {
+        ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl { span: _, decl })) => {
+            match decl {
+                Decl::Fn(fn_decl) => Some(fn_decl),
+                _ => None
+            }
+        },
+        ModuleItem::Stmt(Stmt::Decl(Decl::Fn(fn_decl))) => Some(fn_decl),
+        _ => None
+    }
 }
 
 fn process_fn_decl(fn_decl: &mut FnDecl) -> Option<Component> {
