@@ -15,7 +15,7 @@ pub fn process_transform(program: Program, _metadata: TransformPluginProgramMeta
 mod test {
     use swc_core::common::{chain, Mark};
     use swc_core::ecma::transforms::base::resolver;
-    use swc_core::ecma::transforms::testing::Tester;
+    use swc_core::ecma::transforms::testing::{Tester,test_inline};
     use swc_core::ecma::{
         parser::{Syntax, TsConfig},
         transforms::testing::test,
@@ -37,7 +37,7 @@ mod test {
         )
     }
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ basic_export,
         /* Input */ r#"
             export const Component = () => <div />;
@@ -48,7 +48,7 @@ mod test {
         "#
     );
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ basic_non_export,
         /* Input */ r#"
             const Component = () => <div />;
@@ -59,7 +59,7 @@ mod test {
         "#
     );
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ fn_expression_export,
         /* Input */ r#"
             export const Component = function() { return <div />; }
@@ -71,7 +71,7 @@ mod test {
     );
 
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ fn_expression_export_multiline,
         /* Input */ r#"
             const a = {};
@@ -88,7 +88,7 @@ mod test {
         "#
     );
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ fn_declaration_export,
         /* Input */ r#"
             export function Component() { return <div />; }
@@ -99,7 +99,7 @@ mod test {
         "#
     );
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ fn_declaration_default_export,
         /* Input */ r#"
             export default function Component() { return <div />; }
@@ -110,7 +110,7 @@ mod test {
         "#
     );
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ fn_declaration,
         /* Input */ r#"
             function Component() { return <div />; }
@@ -121,7 +121,7 @@ mod test {
         "#
     );
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ memo,
         /* Input */ r#"
             export const Component = memo(() => <div />);
@@ -132,7 +132,7 @@ mod test {
         "#
     );
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ forward_ref,
         /* Input */ r#"
             export const Component = forwardRef((props, ref) => <div />);
@@ -143,7 +143,7 @@ mod test {
         "#
     );
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ returning_fragment,
         /* Input */ r#"
             export const Component = () => <></>;
@@ -154,7 +154,7 @@ mod test {
         "#
     );
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ two_components,
         /* Input */ r#"
             export const Foo = () => <div />;
@@ -168,7 +168,7 @@ mod test {
         "#
     );
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ mix_var_export,
         /* Input */ r#"
             const Foo = () => <div />;
@@ -182,7 +182,7 @@ mod test {
         "#
     );
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ three_components,
         /* Input */ r#"
             export const Foo = () => <div />;
@@ -199,7 +199,7 @@ mod test {
         "#
     );
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ var_let_const,
         /* Input */ r#"
             var Foo = () => <div />;
@@ -216,7 +216,7 @@ mod test {
         "#
     );
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ one_const_statement_multiple_exprs,
         /* Input */ r#"
             const Foo = () => <div />, Bar = memo(() => <div />);
@@ -228,7 +228,7 @@ mod test {
         "#
     );
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ should_not_work_on_normal_fn,
         /* Input */ r#"
             export const fn = () => console.log();
@@ -238,7 +238,7 @@ mod test {
         "#
     );
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ should_not_work_on_default_export,
         /* Input */ r#"
             export default (() => <div />);
@@ -248,7 +248,7 @@ mod test {
         "#
     );
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ should_not_work_on_non_top_level_fns,
         /* Input */ r#"
             const fn = () => {
@@ -265,7 +265,7 @@ mod test {
         "#
     );
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ should_not_work_on_direct_jsx_element,
         /* Input */ r#"
             const foo = <div />;
@@ -277,7 +277,7 @@ mod test {
         "#
     );
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ should_not_work_on_object_literal,
         /* Input */ r#"
             const foo = { bar: <div /> };
@@ -287,7 +287,7 @@ mod test {
         "#
     );
 
-    test!(SYNTAX, runner,
+    test_inline!(SYNTAX, runner,
         /* Name */ should_not_work_on_non_top_level, // https://github.com/hjkcai/swc-plugin-add-display-name/issues/7
         /* Input */ r#"
             test("should not work", () => {

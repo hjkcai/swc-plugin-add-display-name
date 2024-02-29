@@ -26,11 +26,11 @@ impl Component {
                 expr: Box::new(Expr::Assign(AssignExpr {
                     span: DUMMY_SP,
                     op: AssignOp::Assign,
-                    left: PatOrExpr::Expr(Box::new(Expr::Member(MemberExpr {
+                    left: AssignTarget::Simple(SimpleAssignTarget::Member(MemberExpr {
                         span: DUMMY_SP,
                         obj: Box::new(Expr::Ident(Ident::new(self.name.clone(), Span { ctxt: self.ctx, ..DUMMY_SP }))),
                         prop: MemberProp::Ident(Ident::new(JsWord::from("displayName").into(), DUMMY_SP))
-                    }))),
+                    })),
                     right: Box::new(Expr::Lit(Lit::Str(Str::from(self.name.clone()))))
                 }))
             })
