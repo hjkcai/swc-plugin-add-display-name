@@ -300,4 +300,28 @@ mod test {
             });
         "#
     );
+
+    test_inline!(SYNTAX, runner,
+        /* Name */ should_not_duplicate_existed,
+        /* Input */ r#"
+            export const Component = function() { return <div />; }
+            Component.displayName = "Component";
+        "#,
+        /* Output */ r#"
+            export const Component = function() { return <div />; }
+            Component.displayName = "Component";
+        "#
+    );
+
+    test_inline!(SYNTAX, runner,
+        /* Name */ should_not_rewrite_existed,
+        /* Input */ r#"
+            export const Component = function() { return <div />; }
+            Component.displayName = "CustomName";
+        "#,
+        /* Output */ r#"
+            export const Component = function() { return <div />; }
+            Component.displayName = "CustomName";
+        "#
+    );
 }
