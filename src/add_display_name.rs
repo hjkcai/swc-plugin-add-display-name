@@ -1,4 +1,5 @@
 use super::has_jsx::HasJSXVisitor;
+use std::collections::HashSet;
 use swc_core::common::{DUMMY_SP, SyntaxContext, Span};
 use swc_core::ecma::{
     ast::*,
@@ -46,6 +47,8 @@ impl VisitMut for AddDisplayNameVisitor {
         stmts.visit_mut_children_with(self);
 
         let mut components: Vec<Component> = Vec::new();
+        let mut components_names_with_display_name: HashSet<JsWord> = HashSet::new();
+
         stmts.iter_mut().enumerate().for_each(|(pos, stmt)| {
             if let Some(var_decl) = to_var_decl(stmt) {
                 var_decl.decls.iter_mut().for_each(|var_declarator| {
@@ -66,10 +69,22 @@ impl VisitMut for AddDisplayNameVisitor {
                     components.push(comp.with_pos(pos))
                 }
             }
+
+            if let Some(assign_expr) = to_assignment_expr(stmt) {
+                if let Some(component_name) = process_assignment_expr(assign_expr) {
+                    components_names_with_display_name.insert(component_name);
+                }
+            }
         });
 
         components.iter().enumerate().for_each(|(i, comp)| {
             let index = i + comp.pos + 1;
+
+            
+            if components_names_with_display_name.contains(&comp.name) {
+                return;
+            }
+
             if index < stmts.len() {
                 stmts.insert(index, comp.create_display_name_stmt());
             } else {
@@ -159,4 +174,39 @@ fn process_fn_decl(fn_decl: &mut FnDecl) -> Option<Component> {
         name: name.sym.clone(),
         ctx: name.span.ctxt
     })
+}
+
+fn to_assignment_expr(stmt: &mut ModuleItem) -> Option<&mut AssignExpr> {
+    match stmt {
+        ModuleItem::Stmt(Stmt::Expr(ExprStmt { expr, .. })) => {
+            match &mut **expr {
+                Expr::Assign(assign_expr) => Some(assign_expr),
+                _ => None
+            }
+        }
+        _ => None
+    }
+}
+
+fn process_assignment_expr(expr: &mut AssignExpr) -> Option<JsWord> {
+    if expr.op != AssignOp::Assign {
+        return None;
+    }
+
+    match &expr.left {
+        AssignTarget::Simple(SimpleAssignTarget::Member(
+            MemberExpr { prop: MemberProp::Ident(ident), obj, .. }
+        )) => {
+
+
+            if &*ident.sym != "displayName" {
+                return None
+            }
+
+            let obj = obj.as_ident()?;
+
+            Some(obj.sym.clone())
+        },
+        _ => None
+    }
 }
