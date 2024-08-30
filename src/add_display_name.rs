@@ -1,6 +1,6 @@
 use super::has_jsx::HasJSXVisitor;
 use std::collections::HashSet;
-use swc_core::common::{DUMMY_SP, SyntaxContext, Span};
+use swc_core::common::{DUMMY_SP, SyntaxContext};
 use swc_core::ecma::{
     ast::*,
     atoms::JsWord,
@@ -29,8 +29,8 @@ impl Component {
                     op: AssignOp::Assign,
                     left: AssignTarget::Simple(SimpleAssignTarget::Member(MemberExpr {
                         span: DUMMY_SP,
-                        obj: Box::new(Expr::Ident(Ident::new(self.name.clone(), Span { ctxt: self.ctx, ..DUMMY_SP }))),
-                        prop: MemberProp::Ident(Ident::new(JsWord::from("displayName").into(), DUMMY_SP))
+                        obj: Box::new(Expr::Ident(Ident::new(self.name.clone(), DUMMY_SP, self.ctx))),
+                        prop: MemberProp::Ident(IdentName::new(JsWord::from("displayName").into(), DUMMY_SP))
                     })),
                     right: Box::new(Expr::Lit(Lit::Str(Str::from(self.name.clone()))))
                 }))
@@ -80,7 +80,7 @@ impl VisitMut for AddDisplayNameVisitor {
         components.iter().enumerate().for_each(|(i, comp)| {
             let index = i + comp.pos + 1;
 
-            
+
             if components_names_with_display_name.contains(&comp.name) {
                 return;
             }
@@ -121,7 +121,7 @@ fn process_var_declarator(var_decl: &mut VarDeclarator) -> Option<Component> {
     Some(Component {
         pos: 0,
         name: name.sym.clone(),
-        ctx: name.span.ctxt
+        ctx: name.ctxt
     })
 }
 
@@ -145,7 +145,7 @@ fn process_fn_expr(fn_expr: &mut FnExpr) -> Option<Component> {
         return Some(Component {
             pos: 0,
             name: name.sym.clone(),
-            ctx: name.span.ctxt
+            ctx: name.ctxt
         })
     }
     return None
@@ -172,7 +172,7 @@ fn process_fn_decl(fn_decl: &mut FnDecl) -> Option<Component> {
     Some(Component {
         pos: 0,
         name: name.sym.clone(),
-        ctx: name.span.ctxt
+        ctx: name.ctxt
     })
 }
 

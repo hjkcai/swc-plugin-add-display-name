@@ -17,12 +17,12 @@ mod test {
     use swc_core::ecma::transforms::base::resolver;
     use swc_core::ecma::transforms::testing::{Tester,test_inline};
     use swc_core::ecma::{
-        parser::{Syntax, TsConfig},
+        parser::{Syntax, TsSyntax},
         transforms::testing::test,
         visit::{as_folder, Fold},
     };
 
-    const SYNTAX: Syntax = Syntax::Typescript(TsConfig {
+    const SYNTAX: Syntax = Syntax::Typescript(TsSyntax {
         tsx: true,
         decorators: false,
         dts: false,
