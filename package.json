@@ -1,25 +1,25 @@
 {
-  "name": "swc-plugin-add-display-name",
-  "version": "0.5.0",
-  "description": "An SWC plugin to add displayName to React components",
-  "author": "hjkcai <huajingkun1214@gmail.com>",
-  "license": "MIT",
-  "keywords": [
-    "swc-plugin"
-  ],
-  "repository": "https://github.com/hjkcai/swc-plugin-add-display-name",
-  "main": "target/wasm32-wasi/release/swc_plugin_add_display_name.wasm",
-  "files": [
-    "target/wasm32-wasi/release/swc_plugin_add_display_name.wasm"
-  ],
-  "scripts": {
-    "prepublishOnly": "cargo build-wasi --release"
-  },
-  "peerDependencies": {
-    "@swc/core": "^1.4.0"
-  },
-  "devDependencies": {
-    "@swc/cli": "^0.1.59",
-    "@swc/core": "^1.4.0"
-  }
+    "name": "swc-plugin-add-display-name",
+    "version": "0.5.0",
+    "description": "An SWC plugin to add displayName to React components",
+    "author": "hjkcai <huajingkun1214@gmail.com>",
+    "license": "MIT",
+    "keywords": [
+        "swc-plugin"
+    ],
+    "repository": "https://github.com/hjkcai/swc-plugin-add-display-name",
+    "main": "target/wasm32-wasip1/release/swc_plugin_add_display_name.wasm",
+    "files": [
+        "target/wasm32-wasip1/release/swc_plugin_add_display_name.wasm"
+    ],
+    "scripts": {
+        "prepublishOnly": "cargo build-wasi --release"
+    },
+    "peerDependencies": {
+        "@swc/core": "^1.10.0"
+    },
+    "devDependencies": {
+        "@swc/cli": "^0.6.0",
+        "@swc/core": "^1.10.0"
+    }
 }

@@ -14,7 +14,7 @@ strip = "symbols"
 
 [dependencies]
 serde = "1"
-swc_core = { version = "0.99.5", features = ["ecma_plugin_transform", "__parser"] }
+swc_core = { version = "14.0.1", features = ["ecma_plugin_transform", "__parser"] }
 
 # .cargo/config defines few alias to build plugin.
 # cargo build-wasi generates wasm-wasi32 binary

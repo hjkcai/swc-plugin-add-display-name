@@ -3,23 +3,25 @@ mod has_jsx;
 
 use add_display_name::AddDisplayNameVisitor;
 use swc_core::ecma::ast::Program;
-use swc_core::ecma::visit::{as_folder, FoldWith};
-use swc_core::plugin::{plugin_transform, proxies::TransformPluginProgramMetadata};
+use swc_core::ecma::visit::visit_mut_pass;
+use swc_core::plugin::plugin_transform;
+use swc_core::plugin::proxies::TransformPluginProgramMetadata;
 
 #[plugin_transform]
 pub fn process_transform(program: Program, _metadata: TransformPluginProgramMetadata) -> Program {
-    program.fold_with(&mut as_folder(AddDisplayNameVisitor::default()))
+    program.apply(&mut visit_mut_pass(AddDisplayNameVisitor::default()))
 }
 
 #[cfg(test)]
 mod test {
-    use swc_core::common::{chain, Mark};
+    use swc_core::common::Mark;
+    use swc_core::ecma::ast::Pass;
     use swc_core::ecma::transforms::base::resolver;
     use swc_core::ecma::transforms::testing::{Tester,test_inline};
+    use swc_core::ecma::visit::visit_mut_pass;
     use swc_core::ecma::{
         parser::{Syntax, TsSyntax},
         transforms::testing::test,
-        visit::{as_folder, Fold},
     };
 
     const SYNTAX: Syntax = Syntax::Typescript(TsSyntax {
@@ -30,10 +32,10 @@ mod test {
         disallow_ambiguous_jsx_like: true,
     });
 
-    fn runner(_: &mut Tester) -> impl Fold {
-        chain!(
+    fn runner(_: &mut Tester) -> impl Pass {
+        (
             resolver(Mark::new(), Mark::new(), false),
-            as_folder(super::AddDisplayNameVisitor::default())
+            visit_mut_pass(super::AddDisplayNameVisitor::default())
         )
     }
 
