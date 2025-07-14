@@ -1,6 +1,6 @@
 use super::has_jsx::HasJSXVisitor;
 use std::collections::HashSet;
-use swc_core::common::{DUMMY_SP, SyntaxContext};
+use swc_core::common::{SyntaxContext, DUMMY_SP};
 use swc_core::ecma::{
     ast::*,
     atoms::JsWord,
@@ -21,21 +21,26 @@ impl Component {
 
 impl Component {
     pub fn create_display_name_stmt(&self) -> ModuleItem {
-        ModuleItem::Stmt(
-            Stmt::Expr(ExprStmt {
+        ModuleItem::Stmt(Stmt::Expr(ExprStmt {
+            span: DUMMY_SP,
+            expr: Box::new(Expr::Assign(AssignExpr {
                 span: DUMMY_SP,
-                expr: Box::new(Expr::Assign(AssignExpr {
+                op: AssignOp::Assign,
+                left: AssignTarget::Simple(SimpleAssignTarget::Member(MemberExpr {
                     span: DUMMY_SP,
-                    op: AssignOp::Assign,
-                    left: AssignTarget::Simple(SimpleAssignTarget::Member(MemberExpr {
-                        span: DUMMY_SP,
-                        obj: Box::new(Expr::Ident(Ident::new(self.name.clone(), DUMMY_SP, self.ctx))),
-                        prop: MemberProp::Ident(IdentName::new(JsWord::from("displayName").into(), DUMMY_SP))
-                    })),
-                    right: Box::new(Expr::Lit(Lit::Str(Str::from(self.name.clone()))))
-                }))
-            })
-        )
+                    obj: Box::new(Expr::Ident(Ident::new(
+                        self.name.clone(),
+                        DUMMY_SP,
+                        self.ctx,
+                    ))),
+                    prop: MemberProp::Ident(IdentName::new(
+                        JsWord::from("displayName").into(),
+                        DUMMY_SP,
+                    )),
+                })),
+                right: Box::new(Expr::Lit(Lit::Str(Str::from(self.name.clone())))),
+            })),
+        }))
     }
 }
 
@@ -80,7 +85,6 @@ impl VisitMut for AddDisplayNameVisitor {
         components.iter().enumerate().for_each(|(i, comp)| {
             let index = i + comp.pos + 1;
 
-
             if components_names_with_display_name.contains(&comp.name) {
                 return;
             }
@@ -99,11 +103,11 @@ fn to_var_decl(stmt: &mut ModuleItem) -> Option<&mut VarDecl> {
         ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl { span: _, decl })) => {
             match decl {
                 Decl::Var(var_decl) => Some(var_decl),
-                _ => None
+                _ => None,
             }
-        },
+        }
         ModuleItem::Stmt(Stmt::Decl(Decl::Var(var_decl))) => Some(var_decl),
-        _ => None
+        _ => None,
     }
 }
 
@@ -115,40 +119,45 @@ fn process_var_declarator(var_decl: &mut VarDeclarator) -> Option<Component> {
     }
 
     let has_jsx = HasJSXVisitor::test(var_decl);
-    if !has_jsx { return None };
+    if !has_jsx {
+        return None;
+    };
 
     let name = &var_decl.name.as_ident()?.id;
     Some(Component {
         pos: 0,
         name: name.sym.clone(),
-        ctx: name.ctxt
+        ctx: name.ctxt,
     })
 }
 
 fn to_fn_expr(stmt: &mut ModuleItem) -> Option<&mut FnExpr> {
     match stmt {
-        ModuleItem::ModuleDecl(ModuleDecl::ExportDefaultDecl(ExportDefaultDecl { span: _, decl })) => {
-            match decl {
-                DefaultDecl::Fn(fn_expr) => Some(fn_expr),
-                _ => None,
-            }
+        ModuleItem::ModuleDecl(ModuleDecl::ExportDefaultDecl(ExportDefaultDecl {
+            span: _,
+            decl,
+        })) => match decl {
+            DefaultDecl::Fn(fn_expr) => Some(fn_expr),
+            _ => None,
         },
-        _ => None
+        _ => None,
     }
 }
 
 fn process_fn_expr(fn_expr: &mut FnExpr) -> Option<Component> {
     let has_jsx = HasJSXVisitor::test(fn_expr);
-    if !has_jsx { return None };
+    if !has_jsx {
+        return None;
+    };
 
     if let Some(name) = &fn_expr.ident {
         return Some(Component {
             pos: 0,
             name: name.sym.clone(),
-            ctx: name.ctxt
-        })
+            ctx: name.ctxt,
+        });
     }
-    return None
+    return None;
 }
 
 fn to_fn_decl(stmt: &mut ModuleItem) -> Option<&mut FnDecl> {
@@ -156,35 +165,35 @@ fn to_fn_decl(stmt: &mut ModuleItem) -> Option<&mut FnDecl> {
         ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl { span: _, decl })) => {
             match decl {
                 Decl::Fn(fn_decl) => Some(fn_decl),
-                _ => None
+                _ => None,
             }
-        },
+        }
         ModuleItem::Stmt(Stmt::Decl(Decl::Fn(fn_decl))) => Some(fn_decl),
-        _ => None
+        _ => None,
     }
 }
 
 fn process_fn_decl(fn_decl: &mut FnDecl) -> Option<Component> {
     let has_jsx = HasJSXVisitor::test(fn_decl);
-    if !has_jsx { return None };
+    if !has_jsx {
+        return None;
+    };
 
     let name = &fn_decl.ident;
     Some(Component {
         pos: 0,
         name: name.sym.clone(),
-        ctx: name.ctxt
+        ctx: name.ctxt,
     })
 }
 
 fn to_assignment_expr(stmt: &mut ModuleItem) -> Option<&mut AssignExpr> {
     match stmt {
-        ModuleItem::Stmt(Stmt::Expr(ExprStmt { expr, .. })) => {
-            match &mut **expr {
-                Expr::Assign(assign_expr) => Some(assign_expr),
-                _ => None
-            }
-        }
-        _ => None
+        ModuleItem::Stmt(Stmt::Expr(ExprStmt { expr, .. })) => match &mut **expr {
+            Expr::Assign(assign_expr) => Some(assign_expr),
+            _ => None,
+        },
+        _ => None,
     }
 }
 
@@ -194,19 +203,19 @@ fn process_assignment_expr(expr: &mut AssignExpr) -> Option<JsWord> {
     }
 
     match &expr.left {
-        AssignTarget::Simple(SimpleAssignTarget::Member(
-            MemberExpr { prop: MemberProp::Ident(ident), obj, .. }
-        )) => {
-
-
+        AssignTarget::Simple(SimpleAssignTarget::Member(MemberExpr {
+            prop: MemberProp::Ident(ident),
+            obj,
+            ..
+        })) => {
             if &*ident.sym != "displayName" {
-                return None
+                return None;
             }
 
             let obj = obj.as_ident()?;
 
             Some(obj.sym.clone())
-        },
-        _ => None
+        }
+        _ => None,
     }
 }
