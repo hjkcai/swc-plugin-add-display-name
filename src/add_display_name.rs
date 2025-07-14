@@ -3,13 +3,13 @@ use std::collections::HashSet;
 use swc_core::common::{SyntaxContext, DUMMY_SP};
 use swc_core::ecma::{
     ast::*,
-    atoms::JsWord,
+    atoms::Atom,
     visit::{VisitMut, VisitMutWith},
 };
 
 struct Component {
     pos: usize,
-    name: JsWord,
+    name: Atom,
     ctx: SyntaxContext,
 }
 
@@ -33,10 +33,7 @@ impl Component {
                         DUMMY_SP,
                         self.ctx,
                     ))),
-                    prop: MemberProp::Ident(IdentName::new(
-                        JsWord::from("displayName").into(),
-                        DUMMY_SP,
-                    )),
+                    prop: MemberProp::Ident(IdentName::new("displayName".into(), DUMMY_SP)),
                 })),
                 right: Box::new(Expr::Lit(Lit::Str(Str::from(self.name.clone())))),
             })),
@@ -52,7 +49,7 @@ impl VisitMut for AddDisplayNameVisitor {
         stmts.visit_mut_children_with(self);
 
         let mut components: Vec<Component> = Vec::new();
-        let mut components_names_with_display_name: HashSet<JsWord> = HashSet::new();
+        let mut components_names_with_display_name: HashSet<Atom> = HashSet::new();
 
         stmts.iter_mut().enumerate().for_each(|(pos, stmt)| {
             if let Some(var_decl) = to_var_decl(stmt) {
@@ -197,7 +194,7 @@ fn to_assignment_expr(stmt: &mut ModuleItem) -> Option<&mut AssignExpr> {
     }
 }
 
-fn process_assignment_expr(expr: &mut AssignExpr) -> Option<JsWord> {
+fn process_assignment_expr(expr: &mut AssignExpr) -> Option<Atom> {
     if expr.op != AssignOp::Assign {
         return None;
     }
