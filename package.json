@@ -1,6 +1,6 @@
 {
   "name": "swc-plugin-add-display-name",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "An SWC plugin to add displayName to React components",
   "author": "hjkcai <huajingkun1214@gmail.com>",
   "license": "MIT",
@@ -16,7 +16,7 @@
     "prepublishOnly": "cargo build-wasi --release"
   },
   "peerDependencies": {
-    "@swc/core": "^1.10.0"
+    "@swc/core": "^1.12.14"
   },
   "devDependencies": {
     "@swc/cli": "^0.6.0",
