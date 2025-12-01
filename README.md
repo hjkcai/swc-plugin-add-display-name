@@ -3,6 +3,8 @@
 Automatically add `displayName` to *top-level* React *functional* components.
 - ✅ `const Component = () => <jsx />`
 - ✅ `function Component() { return <jsx /> }`
+- ✅ `const Component = () => jsx("div", { children: "hello" })` (Compiled JSX code)
+- ✅ `const Component = () => React.createElement("div", null, "hello")` (Compiled or hand-written JSX code)
 - ❌ `const Context = createContext()`
 
 > If you have other situations that needs to add `displayName`, feel free to open an issue or PR!
@@ -80,6 +82,15 @@ export function Component() { return <div />; }
 
 // After
 export function Component() { return <div />; }
+Component.displayName = "Component";
+```
+
+```tsx
+// Before
+export const Component = () => jsx("div", { children: "hello" });
+
+// After
+export const Component = () => jsx("div", { children: "hello" });
 Component.displayName = "Component";
 ```
 
