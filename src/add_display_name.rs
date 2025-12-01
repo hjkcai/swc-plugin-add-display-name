@@ -152,14 +152,16 @@ fn extract_var_decl_from_module_item(stmt: &mut ModuleItem) -> Option<&mut VarDe
 }
 
 fn process_var_declarator(var_decl: &mut VarDeclarator) -> Option<Component> {
+    // Skip existing displayNames and obvious non-components
     if let Some(init) = &var_decl.init {
         if init.is_jsx_element() || init.is_jsx_fragment() || init.is_paren() || init.is_object() {
             return None;
         }
     }
 
-    let has_jsx = HasJSXVisitor::test(var_decl);
-    if !has_jsx {
+    // Check for component indicators (JSX OR API calls)
+    let has_component_indicators = HasJSXVisitor::test(var_decl);
+    if !has_component_indicators {
         return None;
     };
 

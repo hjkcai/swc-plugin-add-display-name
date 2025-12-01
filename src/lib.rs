@@ -690,4 +690,134 @@ mod test {
             Component.displayName = "Component";
         "#
     );
+
+    // New test cases for additional component patterns
+
+    test_inline!(
+        SYNTAX,
+        runner,
+        /* Name */ create_context,
+        /* Input */ r#"
+            import { createContext } from 'react';
+            export const ThemeContext = createContext('light');
+        "#,
+        /* Output */ r#"
+            import { createContext } from 'react';
+            export const ThemeContext = createContext('light');
+            ThemeContext.displayName = "ThemeContext";
+        "#
+    );
+
+    test_inline!(
+        SYNTAX,
+        runner,
+        /* Name */ styled_template_literal,
+        /* Input */ r#"
+            import styled from 'styled-components';
+            export const StyledButton = styled.button`
+                background: blue;
+            `;
+        "#,
+        /* Output */ r#"
+            import styled from 'styled-components';
+            export const StyledButton = styled.button`
+                background: blue;
+            `;
+            StyledButton.displayName = "StyledButton";
+        "#
+    );
+
+    test_inline!(
+        SYNTAX,
+        runner,
+        /* Name */ styled_div_template,
+        /* Input */ r#"
+            import styled from 'styled-components';
+            export const StyledDiv = styled.div`
+                padding: 10px;
+            `;
+        "#,
+        /* Output */ r#"
+            import styled from 'styled-components';
+            export const StyledDiv = styled.div`
+                padding: 10px;
+            `;
+            StyledDiv.displayName = "StyledDiv";
+        "#
+    );
+
+    test_inline!(
+        SYNTAX,
+        runner,
+        /* Name */ mobx_observer_without_jsx,
+        /* Input */ r#"
+            import { observer } from 'mobx-react-lite';
+            export const ObservedComponent = observer(() => console.log('no jsx'));
+        "#,
+        /* Output */ r#"
+            import { observer } from 'mobx-react-lite';
+            export const ObservedComponent = observer(() => console.log('no jsx'));
+            ObservedComponent.displayName = "ObservedComponent";
+        "#
+    );
+
+    test_inline!(
+        SYNTAX,
+        runner,
+        /* Name */ mobx_observer_member_call,
+        /* Input */ r#"
+            import MobX from 'mobx';
+            export const ObservedComponent = MobX.observer(() => console.log('no jsx'));
+        "#,
+        /* Output */ r#"
+            import MobX from 'mobx';
+            export const ObservedComponent = MobX.observer(() => console.log('no jsx'));
+            ObservedComponent.displayName = "ObservedComponent";
+        "#
+    );
+
+    test_inline!(
+        SYNTAX,
+        runner,
+        /* Name */ redux_connect_without_jsx,
+        /* Input */ r#"
+            import { connect } from 'react-redux';
+            export const ConnectedComponent = connect(() => ({}))(() => console.log('no jsx'));
+        "#,
+        /* Output */ r#"
+            import { connect } from 'react-redux';
+            export const ConnectedComponent = connect(() => ({}))(() => console.log('no jsx'));
+            ConnectedComponent.displayName = "ConnectedComponent";
+        "#
+    );
+
+    test_inline!(
+        SYNTAX,
+        runner,
+        /* Name */ mixed_patterns_multiple_components,
+        /* Input */ r#"
+            import { createContext, observer } from 'react';
+            import styled from 'styled-components';
+            import { connect } from 'react-redux';
+
+            export const ThemeContext = createContext('dark');
+            export const StyledButton = styled.button`color: red;`;
+            export const ObservedComponent = observer(() => <div />);
+            export const ConnectedComponent = connect(null)(() => null);
+        "#,
+        /* Output */ r#"
+            import { createContext, observer } from 'react';
+            import styled from 'styled-components';
+            import { connect } from 'react-redux';
+
+            export const ThemeContext = createContext('dark');
+            ThemeContext.displayName = "ThemeContext";
+            export const StyledButton = styled.button`color: red;`;
+            StyledButton.displayName = "StyledButton";
+            export const ObservedComponent = observer(() => <div />);
+            ObservedComponent.displayName = "ObservedComponent";
+            export const ConnectedComponent = connect(null)(() => null);
+            ConnectedComponent.displayName = "ConnectedComponent";
+        "#
+    );
 }
