@@ -541,6 +541,22 @@ mod test {
     test_inline!(
         SYNTAX,
         runner,
+        /* Name */ top_level_create_element_call_should_not_apply,
+        /* Input */ r#"
+            import * as React from "react";
+            const el1 = jsx("div", { children: "hello" });
+            export const el2 = React.createElement("div", null, "hello");
+        "#,
+        /* Output */ r#"
+            import * as React from "react";
+            const el1 = jsx("div", { children: "hello" });
+            export const el2 = React.createElement("div", null, "hello");
+        "#
+    );
+
+    test_inline!(
+        SYNTAX,
+        runner,
         /* Name */ mixed_jsx_and_react_calls,
         /* Input */ r#"
             import React from "react";

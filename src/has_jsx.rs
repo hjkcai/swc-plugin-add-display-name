@@ -4,6 +4,7 @@ use swc_core::ecma::{
 };
 
 pub struct HasJSXVisitor {
+    inside_fn: bool,
     has_jsx: bool,
     has_component_api_calls: bool,
 }
@@ -11,23 +12,43 @@ pub struct HasJSXVisitor {
 impl HasJSXVisitor {
     pub fn test(node: &mut impl VisitMutWith<Self>) -> bool {
         let mut visitor = HasJSXVisitor {
+            inside_fn: false,
             has_jsx: false,
             has_component_api_calls: false,
         };
-        node.visit_mut_children_with(&mut visitor);
+        node.visit_mut_with(&mut visitor);
         visitor.has_jsx || visitor.has_component_api_calls
     }
 }
 
 impl VisitMut for HasJSXVisitor {
+    fn visit_mut_fn_decl(&mut self, el: &mut FnDecl) {
+        println!("fn_decl");
+        self.inside_fn = true;
+        el.visit_mut_children_with(self);
+        self.inside_fn = false;
+    }
+
+    fn visit_mut_fn_expr(&mut self, el: &mut FnExpr) {
+        self.inside_fn = true;
+        el.visit_mut_children_with(self);
+        self.inside_fn = false;
+    }
+
+    fn visit_mut_arrow_expr(&mut self, el: &mut ArrowExpr) {
+        self.inside_fn = true;
+        el.visit_mut_children_with(self);
+        self.inside_fn = false;
+    }
+
     fn visit_mut_jsx_element(&mut self, el: &mut JSXElement) {
         el.visit_mut_children_with(self);
-        self.has_jsx = true;
+        self.mark_jsx();
     }
 
     fn visit_mut_jsx_fragment(&mut self, el: &mut JSXFragment) {
         el.visit_mut_children_with(self);
-        self.has_jsx = true;
+        self.mark_jsx();
     }
 
     fn visit_mut_call_expr(&mut self, call_expr: &mut CallExpr) {
@@ -35,7 +56,7 @@ impl VisitMut for HasJSXVisitor {
 
         // Check if this is a React JSX runtime call or createElement call
         if self.is_react_call(call_expr) {
-            self.has_jsx = true;
+            self.mark_jsx();
         }
 
         // Check for component API calls
@@ -54,6 +75,12 @@ impl VisitMut for HasJSXVisitor {
 }
 
 impl HasJSXVisitor {
+    fn mark_jsx(&mut self) {
+        if self.inside_fn {
+            self.has_jsx = true;
+        }
+    }
+
     fn is_react_call(&self, call_expr: &CallExpr) -> bool {
         match &call_expr.callee {
             Callee::Expr(expr) => match &**expr {
