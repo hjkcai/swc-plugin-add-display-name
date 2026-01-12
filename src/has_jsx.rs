@@ -23,7 +23,6 @@ impl HasJSXVisitor {
 
 impl VisitMut for HasJSXVisitor {
     fn visit_mut_fn_decl(&mut self, el: &mut FnDecl) {
-        println!("fn_decl");
         self.inside_fn = true;
         el.visit_mut_children_with(self);
         self.inside_fn = false;
