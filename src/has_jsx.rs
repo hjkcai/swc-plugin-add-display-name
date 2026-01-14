@@ -4,7 +4,7 @@ use swc_core::ecma::{
 };
 
 pub struct HasJSXVisitor {
-    inside_fn: bool,
+    inside_fn: usize,
     has_jsx: bool,
     has_component_api_calls: bool,
 }
@@ -12,7 +12,7 @@ pub struct HasJSXVisitor {
 impl HasJSXVisitor {
     pub fn test(node: &mut impl VisitMutWith<Self>) -> bool {
         let mut visitor = HasJSXVisitor {
-            inside_fn: false,
+            inside_fn: 0,
             has_jsx: false,
             has_component_api_calls: false,
         };
@@ -23,21 +23,21 @@ impl HasJSXVisitor {
 
 impl VisitMut for HasJSXVisitor {
     fn visit_mut_fn_decl(&mut self, el: &mut FnDecl) {
-        self.inside_fn = true;
+        self.inside_fn += 1;
         el.visit_mut_children_with(self);
-        self.inside_fn = false;
+        self.inside_fn -= 1;
     }
 
     fn visit_mut_fn_expr(&mut self, el: &mut FnExpr) {
-        self.inside_fn = true;
+        self.inside_fn += 1;
         el.visit_mut_children_with(self);
-        self.inside_fn = false;
+        self.inside_fn -= 1;
     }
 
     fn visit_mut_arrow_expr(&mut self, el: &mut ArrowExpr) {
-        self.inside_fn = true;
+        self.inside_fn += 1;
         el.visit_mut_children_with(self);
-        self.inside_fn = false;
+        self.inside_fn -= 1;
     }
 
     fn visit_mut_jsx_element(&mut self, el: &mut JSXElement) {
@@ -75,7 +75,7 @@ impl VisitMut for HasJSXVisitor {
 
 impl HasJSXVisitor {
     fn mark_jsx(&mut self) {
-        if self.inside_fn {
+        if self.inside_fn > 0 {
             self.has_jsx = true;
         }
     }

@@ -120,6 +120,32 @@ mod test {
     test_inline!(
         SYNTAX,
         runner,
+        /* Name */ fn_declaration_function_prop,
+        /* Input */ r#"
+            export function SomeComponent() {
+                return (
+                    <div
+                        onClick={() => {}}
+                    >
+                        Hello world!
+                    </div>
+                );
+            }
+        "#,
+        /* Output */
+        r#"
+            export function SomeComponent() {
+                return <div onClick={()=>{}}>
+                        Hello world!
+                    </div>;
+            }
+            SomeComponent.displayName = "SomeComponent";
+        "#
+    );
+
+    test_inline!(
+        SYNTAX,
+        runner,
         /* Name */ fn_declaration_default_export,
         /* Input */
         r#"
