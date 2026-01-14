@@ -90,12 +90,20 @@ impl HasJSXVisitor {
                 }
 
                 // Namespace calls: React.createElement("div", { ... })
+                // Only accept single-level member expressions (X.method) where X is not 'document'
+                // Reject nested member expressions (a.b.method)
                 Expr::Member(member_expr) => {
                     if let MemberProp::Ident(prop_ident) = &member_expr.prop {
-                        matches!(prop_ident.sym.as_ref(), "jsx" | "jsxs" | "_jsx" | "_jsxs" | "jsxDEV" | "_jsxDEV" | "createElement")
-                    } else {
-                        false
+                        // Check if this is a React method
+                        if matches!(prop_ident.sym.as_ref(), "jsx" | "jsxs" | "_jsx" | "_jsxs" | "jsxDEV" | "_jsxDEV" | "createElement") {
+                            // Only accept if the object is a single identifier (not nested)
+                            // and it's not 'document'
+                            if let Expr::Ident(obj_ident) = &*member_expr.obj {
+                                return obj_ident.sym.as_ref() != "document";
+                            }
+                        }
                     }
+                    false
                 }
 
                 _ => false,

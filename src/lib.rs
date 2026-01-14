@@ -836,4 +836,53 @@ mod test {
             ConnectedComponent.displayName = "ConnectedComponent";
         "#
     );
+
+    test_inline!(
+        SYNTAX,
+        runner,
+        /* Name */ should_not_add_displayname_to_document_createelement,
+        /* Input */ r#"
+            const notComponent = () => {
+                return document.createElement('div');
+            };
+        "#,
+        /* Output */ r#"
+            const notComponent = () => {
+                return document.createElement('div');
+            };
+        "#
+    );
+
+    test_inline!(
+        SYNTAX,
+        runner,
+        /* Name */ should_not_add_displayname_to_nested_member_createelement,
+        /* Input */ r#"
+            const notComponent = () => {
+                return x.y.createElement('div');
+            };
+        "#,
+        /* Output */ r#"
+            const notComponent = () => {
+                return x.y.createElement('div');
+            };
+        "#
+    );
+
+    test_inline!(
+        SYNTAX,
+        runner,
+        /* Name */ should_add_displayname_to_single_level_member_createelement,
+        /* Input */ r#"
+            const Component = () => {
+                return _react.createElement('div', null, 'Hello');
+            };
+        "#,
+        /* Output */ r#"
+            const Component = () => {
+                return _react.createElement('div', null, 'Hello');
+            };
+            Component.displayName = "Component";
+        "#
+    );
 }
