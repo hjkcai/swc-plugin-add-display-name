@@ -108,7 +108,7 @@ impl HasJSXVisitor {
 
                 _ => false,
             },
-            Callee::Super(_) | Callee::Import(_) => false,
+            _ => false,
         }
     }
 
