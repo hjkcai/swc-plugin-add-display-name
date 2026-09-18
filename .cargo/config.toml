@@ -6,5 +6,9 @@ build-wasm32 = "build --target wasm32-unknown-unknown"
 
 [target.'cfg(target_arch = "wasm32")']
 rustflags = [
-  "--cfg=swc_ast_unknown"
+  "--cfg=swc_ast_unknown",
+  # Rust 1.96 removed wasm-ld's implicit --allow-undefined. SWC host imports
+  # (__set_transform_result, __emit_diagnostics, ...) are provided at runtime.
+  "-C",
+  "link-arg=--allow-undefined",
 ]
