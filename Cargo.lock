@@ -1397,7 +1397,7 @@ dependencies = [
 
 [[package]]
 name = "swc_plugin_add_display_name"
-version = "0.9.3"
+version = "0.10.0"
 dependencies = [
  "serde",
  "swc_core",
