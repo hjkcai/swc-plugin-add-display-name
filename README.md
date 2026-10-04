@@ -178,7 +178,7 @@ ConnectedComponent.displayName = "ConnectedComponent";
 
 SWC Wasm plugins are ABI-checked against the host `swc_core`. If those versions fall into different compatibility ranges, `@swc/core` refuses to load the plugin before any transform runs.
 
-`0.10.0` is built against `swc_core` 78.0.0 and loads on `@swc/core` 1.16.x. Stay on `0.9.x` if the host is still `@swc/core` 1.15.x.
+`0.10.1` is built against `swc_core` 79.0.0 and loads on `@swc/core` 1.16.x. Stay on `0.9.x` if the host is still `@swc/core` 1.15.x.
 
 If your app won't compile after configuring this plugin, pick a row from the table below. You may also refer to:
 - [Selecting the version](https://swc.rs/docs/plugin/selecting-swc-core)
@@ -187,7 +187,7 @@ If your app won't compile after configuring this plugin, pick a row from the tab
 
 | swc-plugin-add-display-name | swc_core | @swc/core |
 |-----------------------------|----------|-----------|
-| >=0.10.0                    | 78.0.0   | 1.16.x    |
+| >=0.10.0                    | 79.0.0   | 1.16.x    |
 | >=0.9.0 <0.10.0             | 54.0.0   | 1.15.x    |
 | >=0.7.0 <0.9.0              | 46.0.3   |           |
 | ^0.6.0                      | 31.1.0   |           |
